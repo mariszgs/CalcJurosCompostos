@@ -20,20 +20,39 @@ def main(page: ft.Page):
 
     tipo_taxa = ft.Dropdown(
         width=160,
-        value="anual",
+        value="mensal",
         options=[
             ft.DropdownOption("mensal"),
             ft.DropdownOption("anual"),
-        ]
+        ],
     )
 
     tipo_periodo = ft.Dropdown(
         width=160,
-        value="ano(s)",
+        value="mes(es)",
         options=[
             ft.DropdownOption("mes(es)"),
             ft.DropdownOption("ano(s)"),
-        ]
+        ],
+    )
+    
+    resultado_texto_vtf = ft.Text(
+        "R$",
+        color="white",
+        size=22,
+        weight=ft.FontWeight.BOLD,
+    )
+
+    resultado_texto_vti = ft.Text(
+        "R$",
+        size=22,
+        weight=ft.FontWeight.BOLD,
+    )
+
+    resultado_texto_juros = ft.Text(
+        "R$",
+        size=22,
+        weight=ft.FontWeight.BOLD,
     )
 
     resultado_container = ft.Container(
@@ -74,13 +93,8 @@ def main(page: ft.Page):
                                                     "Valor Total Final",
                                                     color="white",
                                                     weight=ft.FontWeight.BOLD,
-                                                ),
-                                                ft.Text(
-                                                    "R$ 00,00",
-                                                    color="white",
-                                                    size=22,
-                                                    weight=ft.FontWeight.BOLD,
-                                                )
+                                                    ),
+                                                    resultado_texto_vtf,
                                             ]
                                         )
                                     ),
@@ -100,12 +114,7 @@ def main(page: ft.Page):
                                                     "Valor Total investido",
                                                     weight=ft.FontWeight.BOLD,
                                                 ),
-                                                ft.Text(
-                                                    "R$00,00",
-                                                    size=22,
-                                                    color="#000080",
-                                                    weight=ft.FontWeight.BOLD,
-                                                ),
+                                                resultado_texto_vti,
                                             ]
                                         )
                                     ),
@@ -125,12 +134,7 @@ def main(page: ft.Page):
                                                     "Total em Juros",
                                                     weight=ft.FontWeight.BOLD,
                                                 ),
-                                                ft.Text(
-                                                    "R$00,00",
-                                                    size=22,
-                                                    color="black",
-                                                    weight=ft.FontWeight.BOLD,
-                                                )
+                                                resultado_texto_juros,
                                             ]
                                         )
 
@@ -141,17 +145,47 @@ def main(page: ft.Page):
                     )
                 )
     
-    def calcular(e):
+    def calcular_clique(e):
+        valor_inicial_real = float(valor_inicial.value)
+        aporte = float(valor_mensal.value)
+        taxa_real = float(taxa.value) / 100
+        tempo = int(periodo.value)
+        
+        if tipo_taxa.value == "anual":
+            taxa_real = (1 + taxa_real) ** (1 / 12) - 1
+            
+        if tipo_periodo.value == "ano(s)":
+            tempo *= 12
+        
+        monte = valor_inicial_real
+        
+        for _ in range(tempo):
+            monte *= (1 + taxa_real)  
+            monte += aporte           
+            
+        valor_total_investido = valor_inicial_real + (aporte * tempo)
+        
+        total_juros = monte - valor_total_investido
+        
+        resultado_texto_vtf.value = f"R$ {monte:.2f}"
+        resultado_texto_vti.value = f"R$ {valor_total_investido:.2f}"
+        resultado_texto_juros.value = f"R$ {total_juros:.2f}"
+        
         resultado_container.visible = True
+        
         page.update()
 
     botao_calcular = ft.Button(
        "Calcular",
-       on_click=calcular,
+       on_click=calcular_clique,
        color="#000080"
     )
 
     def limpar(e):
+        valor_inicial.value = ""
+        valor_mensal.value = ""
+        taxa.value = ""
+        periodo.value = ""
         resultado_container.visible = False
         page.update()
 
